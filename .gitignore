@@ -1,0 +1,34 @@
+## .NET Core / Visual Studio build outputs
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+.vs/
+TestResults/
+
+## Sensitive Configuration (Local Keys)
+**/appsettings.Development.json
+**/appsettings.*.local.json
+**/*.local.json
+
+## Local Database & Vector Store
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/*.db-journal
+**/data/semantic_store.db
+
+## Frontend Node / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+## OS Metadata
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini

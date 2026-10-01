@@ -27,36 +27,31 @@ public class DatabaseService : IDatabaseService
         await using var connection = new SqlConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
 
-        var cmdDefinition = new CommandDefinition(
-            commandText: sqlQuery,
-            commandType: CommandType.Text,
-            cancellationToken: cancellationToken,
-            commandTimeout: 90
-        );
+        await using var command = new SqlCommand(sqlQuery, connection)
+        {
+            CommandType = CommandType.Text,
+            CommandTimeout = 90
+        };
 
-        var rows = await connection.QueryAsync(cmdDefinition);
+        await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken);
+        var colCount = reader.FieldCount;
+        var colNames = new string[colCount];
+        for (int i = 0; i < colCount; i++)
+        {
+            colNames[i] = reader.GetName(i);
+        }
+
         var results = new List<Dictionary<string, object?>>();
 
-        foreach (var row in rows)
+        while (await reader.ReadAsync(cancellationToken))
         {
-            if (row is IDictionary<string, object> dict)
+            var rowDict = new Dictionary<string, object?>(colCount, StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < colCount; i++)
             {
-                var rowDict = new Dictionary<string, object?>();
-                foreach (var kv in dict)
-                {
-                    rowDict[kv.Key] = kv.Value;
-                }
-                results.Add(rowDict);
+                var val = reader.GetValue(i);
+                rowDict[colNames[i]] = val is DBNull ? null : val;
             }
-            else
-            {
-                var rowDict = new Dictionary<string, object?>();
-                foreach (var prop in ((object)row).GetType().GetProperties())
-                {
-                    rowDict[prop.Name] = prop.GetValue(row);
-                }
-                results.Add(rowDict);
-            }
+            results.Add(rowDict);
         }
 
         _logger.LogInformation("SQL execution returned {Count} rows", results.Count);

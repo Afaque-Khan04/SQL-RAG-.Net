@@ -18,6 +18,9 @@ export default defineConfig({
       '/session': 'http://localhost:5000'
     }
   },
+  optimizeDeps: {
+    noDiscovery: true,
+  },
   build: {
     outDir: '../src/AdhocSystem.Api/wwwroot',
     emptyOutDir: true
